@@ -10,7 +10,7 @@ let gallery = new SimpleLightbox('.gallery a',
     heightRatio: 0.8,
 });
 
-export function createGalleryMarkup(arr) {
+export function renderedGalleryMarkup(arr) {
     const galleryList = document.querySelector(".gallery");
     const markup = arr.map(({ webformatURL, largeImageURL, tags, likes, views, comments, downloads }) => `
   

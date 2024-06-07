@@ -1,5 +1,5 @@
 import { fetchImages, KEY_API, URL } from './js/pixabay-api';
-import { createGalleryMarkup } from './js/render-functions';
+import { renderedGalleryMarkup } from './js/render-functions';
 import iziToast from 'izitoast';
 
 const form = document.querySelector('.search-form');
@@ -16,10 +16,22 @@ loadBtn.hidden = true;
 
 async function onSubmit(event) {
   event.preventDefault();
-  galleryList.innerHTML = '';
+
   loader.hidden = false;
   const { searchRequest } = event.currentTarget.elements;
-  searchQuery = searchRequest.value;
+  searchQuery = searchRequest.value.trim();
+
+  if (!searchQuery) {
+    iziToast.warning({
+      title: '',
+      position: 'topRight',
+      message: 'Start typing in',
+    });
+    loader.hidden = true;
+    return;
+  }
+
+  galleryList.innerHTML = '';
   page = 1;
 
   try {
@@ -34,7 +46,7 @@ async function onSubmit(event) {
       });
       loadBtn.hidden = true; 
     } else {
-      createGalleryMarkup(data.hits);
+      renderedGalleryMarkup(data.hits);
       if (data.totalHits > 15) {
         loadBtn.hidden = false;
       } else {
@@ -44,6 +56,7 @@ async function onSubmit(event) {
   } finally {
     loader.hidden = true;
   }
+
   form.reset();
 }
 
@@ -57,11 +70,16 @@ async function loadMore() {
   try {
     const data = await fetchImages(searchQuery, page);
     if (data && data.hits.length > 0) {
-      createGalleryMarkup(data.hits);
+      renderedGalleryMarkup(data.hits);
     }
 
-    if (page * 15 >= data.totalHits) { 
+    if (page * 15 >= data.totalHits) {
       loadBtn.hidden = true;
+      iziToast.info({
+        title: 'End of results',
+        position: 'bottomRight',
+        message: "We're sorry, but you've reached the end of search results!",
+      });
     } else {
       loadBtn.hidden = false;
     }
@@ -87,6 +105,10 @@ function getCardHeight() {
 function scrollToNewCards() {
   const cardHeight = getCardHeight();
   if (cardHeight > 0) {
-    window.scrollBy(0, cardHeight * 2);
+    window.scrollBy({
+      top: cardHeight * 2,
+      left: 0,
+      behavior: 'smooth'
+    });
   }
 }
